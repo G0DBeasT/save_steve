@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="google-site-verification" content="ETILrgmBZ33RjlxJh-ybUFcIlIyKXyefMvxbxC6LmOU" />
+		<title>Contribution Graph Games</title>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+		<style>
+			body {
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				line-height: 1.6;
+				color: #333;
+				padding-top: 60px;
+			}
+			.navbar {
+				background-color: #24292e;
+			}
+			.navbar-brand,
+			.nav-link {
+				color: #ffffff !important;
+			}
+			.jumbotron {
+				background-color: #f6f8fa;
+				padding: 2rem;
+				margin-bottom: 2rem;
+			}
+			#svgholder {
+				max-width: 100%;
+				height: auto;
+			}
+			#generationLoading {
+				align-items: center;
+				gap: 0.75rem;
+			}
+			.section {
+				margin-bottom: 3rem;
+			}
+
+			/* ── Leaderboard snapshot ── */
+			.lb-col-score   { color: #856404; }
+			.lb-col-fastest { color: #055160; }
+			.lb-col-ghost   { color: #842029; }
+			.lb-mini-row {
+				display: flex;
+				align-items: center;
+				gap: .5rem;
+				padding: .3rem .4rem;
+				color: #333;
+				font-size: .88rem;
+			}
+			.lb-mini-rank { min-width: 22px; font-weight: 700; font-size: .8rem; color: #6c757d; }
+			.lb-mini-rank-1 { color: #856404; }
+			.lb-mini-rank-2 { color: #6c757d; }
+			.lb-mini-rank-3 { color: #842029; }
+			.lb-mini-avatar {
+				width: 24px; height: 24px;
+				border-radius: 50%;
+				object-fit: cover;
+				border: 1px solid #e1e4e8;
+				flex-shrink: 0;
+			}
+			.lb-mini-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+			.lb-mini-val  { font-size: .78rem; white-space: nowrap; color: #6c757d; }
+			.lb-see-all {
+				display: inline-block;
+				margin-top: 1rem;
+				background: #24292e;
+				color: #fff !important;
+				font-weight: 600;
+				padding: .45rem 1.2rem;
+				border-radius: 20px;
+				text-decoration: none;
+				font-size: .88rem;
+				transition: opacity .2s;
+			}
+			.lb-see-all:hover { opacity: .85; }
+
+			pre {
+				background-color: #f6f8fa;
+				border: 1px solid #e1e4e8;
+				border-radius: 6px;
+				padding: 16px;
+				overflow: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<nav class="navbar navbar-expand-lg fixed-top">
+			<div class="container">
+				<a class="navbar-brand" href="https://abozanona.github.io/pacman-contribution-graph/">Contribution Graph Games</a>
+				<button
+					class="navbar-toggler"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#navbarNav"
+					aria-controls="navbarNav"
+					aria-expanded="false"
+					aria-label="Toggle navigation"
+				>
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="index.html">Home</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="leaderboard.html"><i class="fas fa-trophy"></i> Leaderboard</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="https://github.com/abozanona/pacman-contribution-graph/" target="_blank"
+								><i class="fab fa-github"></i> GitHub</a
+							>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="https://buymeacoffee.com/abozanona/" target="_blank"
+								><i class="fas fa-coffee"></i> Buy Me a Coffee</a
+							>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="https://abozanona.me/pacman-contribution-graph/" target="_blank"
+								><i class="fas fa-blog"></i> Blog</a
+							>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container">
+			<div class="jumbotron">
+				<h1 class="display-4">Contribution Graph Games</h1>
+				<p class="lead">Turn your GitHub or GitLab contributions into arcade games — Pac-Man, Breakout, Bomberman, and more!</p>
+				<hr class="my-4" />
+				<p>
+					Visualize your contribution graph as a playable animated SVG. Pick a game, set up your preferences, and embed the result anywhere.
+				</p>
+			</div>
+
+			<!-- ── Leaderboard Snapshot ── -->
+			<div class="mb-4">
+				<div class="jumbotron">
+					<h2><i class="fas fa-trophy me-2"></i>Leaderboard Snapshot</h2>
+					<p class="lb-sub">Top 3 across all contribution graphs</p>
+					<div class="row g-3" id="lb-snapshot-boards">
+						<div class="col-12 col-md-4">
+							<div class="lb-col-score"><i class="fas fa-star"></i> Highest Score</div>
+							<div id="snap-score">Loading...</div>
+						</div>
+						<div class="col-12 col-md-4">
+							<div class="lb-col-fastest"><i class="fas fa-bolt"></i> Fastest Run</div>
+							<div id="snap-fastest">Loading...</div>
+						</div>
+						<div class="col-12 col-md-4">
+							<div class="lb-col-ghost"><i class="fas fa-ghost"></i> Ghost Hunter</div>
+							<div id="snap-ghost">Loading...</div>
+						</div>
+					</div>
+					<div class="text-center">
+						<a href="leaderboard.html" class="lb-see-all"><i class="fas fa-list-ol me-1"></i>See Full Leaderboard (Top 10)</a>
+					</div>
+				</div>
+			</div>
+
+			<div class="section">
+				<h2>Game Configuration</h2>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="game" class="form-label">Game</label>
+							<select id="game" class="form-select">
+							</select>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="platform" class="form-label">Platform</label>
+							<select id="platform" class="form-select"></select>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="theme" class="form-label">Theme:</label>
+							<select id="theme" class="form-select">
+								<option value="github">GitHub</option>
+								<option value="github-dark">GitHub Dark</option>
+								<option value="gitlab">GitLab</option>
+								<option value="gitlab-dark">GitLab Dark</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="username" class="form-label">Username:</label>
+							<div class="input-group">
+								<input type="text" id="username" class="form-control" placeholder="Enter Username" />
+								<img
+									id="userAvatar"
+									src=""
+									alt="User Avatar"
+									class="img-thumbnail"
+									style="display: none; width: 40px; height: 40px"
+								/>
+							</div>
+							<div id="userNotFound" class="text-danger" style="display: none">User not found</div>
+						</div>
+					</div>
+				</div>
+				<div class="mb-5">
+					<button class="btn btn-secondary mb-1" data-bs-toggle="collapse" data-bs-target="#additionalSettings">
+						Toggle Additional Settings
+					</button>
+					<div id="additionalSettings" class="collapse">
+						<div class="row">
+							<div class="col-md-6">
+								<div class="mb-3">
+									<label for="githubAccessToken" class="form-label"
+										>Github Access Token(<a target="__blank" href="https://github.com/settings/tokens">Generate one</a
+										>):
+									</label>
+									<input
+										type="text"
+										id="githubAccessToken"
+										class="form-control"
+										placeholder="Enter Github Access Token"
+									/>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="mb-3">
+									<label for="scenario" class="form-label">Scenario:</label>
+									<select id="scenario" class="form-select" disabled></select>
+								</div>
+							</div>
+							<div class="col-md-6" id="playerStyleRow">
+								<div class="mb-3">
+									<label for="playerStyle" class="form-label">Player Style:</label>
+									<select id="playerStyle" class="form-select">
+										<option value="conservative">Conservative</option>
+										<option value="aggressive">Aggressive</option>
+										<option value="opportunistic">Opportunistic</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<button id="generate" class="btn btn-primary">Generate</button> It might take a second or two
+			</div>
+
+			<div class="section">
+				<h2>Game Output</h2>
+				<div id="generationLoading" class="alert alert-info" style="display: none" role="status" aria-live="polite">
+					<div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+					<span>Generating contribution graph...</span>
+				</div>
+				<div id="svgContainer" style="display: none">
+					<img id="svgholder" />
+					<br />
+					<button id="downloadSvg" class="btn btn-success mt-3" style="display: none">Download SVG</button>
+				</div>
+				<div id="statScore">Score: <span id="points">0</span></div>
+				<div id="statSteps">Steps: <span id="steps">0</span></div>
+				<div id="statGhosts">Ghosts eaten: <span id="ghostsEaten">0</span></div>
+			</div>
+
+			<div class="section">
+				<h2>Configuration Options</h2>
+				<table class="table table-striped table-hover">
+					<thead>
+						<tr>
+							<th>Option</th>
+							<th>Description</th>
+							<th>Possible Values</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>game</code></td>
+							<td>The arcade game to generate</td>
+							<td id="gameOptionsCell">loading...</td>
+						</tr>
+						<tr>
+							<td><code>platform</code></td>
+							<td>The platform from which to fetch contribution data</td>
+							<td id="platformOptionsCell">loading...</td>
+						</tr>
+						<tr>
+							<td><code>scenario</code></td>
+							<td>The predefined contribution scenario to use when platform is set to scenario</td>
+							<td id="scenarioOptionsCell">loading...</td>
+						</tr>
+						<tr>
+							<td><code>svgCallback</code></td>
+							<td>A callback function that will get called when SVG picture is generated</td>
+							<td><code>(animatedSVG: string) => void</code></td>
+						</tr>
+						<tr>
+							<td><code>gameOverCallback</code></td>
+							<td>A callback function that will get called when the game is over</td>
+							<td><code>gameOverCallback: () => void;</code></td>
+						</tr>
+						<tr>
+							<td><code>username</code></td>
+							<td>The username of the account to fetch contributions from</td>
+							<td>Any valid GitHub or GitLab username</td>
+						</tr>
+						<tr>
+							<td><code>gameTheme</code></td>
+							<td>The visual theme of the game</td>
+							<td><code>github</code>, <code>github-dark</code>, <code>gitlab</code>, <code>gitlab-dark</code></td>
+						</tr>
+						<tr>
+							<td><code>playerStyle</code></td>
+							<td>Pacman movement style</td>
+							<td><code>conservative</code>, <code>aggressive</code>, <code>opportunistic</code></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="section">
+				<h2>How to Use</h2>
+				<h3>Method 1: NPM Package</h3>
+				<pre><code>npm install pacman-contribution-graph
+
+import { ArcadeRenderer } from 'pacman-contribution-graph';
+
+// Replace [game-name] with a valid game name
+const pr = new ArcadeRenderer({
+    game: '[game-name]',
+    platform: 'github',
+    username: 'yourusername',
+    gameTheme: 'github'
+});
+pr.start();
+&lt;/script&gt;</code></pre>
+
+			<h3>Method 3: Github Actions</h3>
+			<ol>
+				<li>Create a new repository with the same name as your github username</li>
+				<li>
+					Create <code>.github/workflows/main.yml</code> in your github repo with the following content
+					<pre><code>name: generate arcade contribution graphs
+
+on:
+	schedule: # run automatically every 24 hours
+	- cron: "0 */24 * * *"
+	workflow_dispatch: # allows to manually run the job at any time
+	push: # run on every push on the master branch
+	branches:
+		- main
+
+jobs:
+	generate:
+	permissions:
+		contents: write
+	runs-on: ubuntu-latest
+	timeout-minutes: 20
+
+	steps:
+		- name: generate contribution graph SVGs
+		uses: abozanona/pacman-contribution-graph@main
+		with:
+			github_user_name: ${{ github.repository_owner }}
+			# Comma-separated list of valid game names (default: pacman)
+			games: 'pacman,bomberman'
+		- name: push SVGs to the output branch
+		uses: crazy-max/ghaction-github-pages@v3.1.0
+		with:
+			target_branch: output
+			build_dir: dist
+		env:
+			GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}</code></pre>
+				</li>
+				<li>Create <code>README.md</code> file in your github repo with the following content. Change <code>[USERNAME]</code> with your github username and <code>[game-name]</code> with a valid game name. Repeat the block for each game you enabled.
+				<pre><code>&lt;picture>
+  &lt;source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/[USERNAME]/[USERNAME]/output/[game-name]-contribution-graph-dark.svg">
+  &lt;source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/[USERNAME]/[USERNAME]/output/[game-name]-contribution-graph.svg">
+  &lt;img alt="[game-name] contribution graph" src="https://raw.githubusercontent.com/[USERNAME]/[USERNAME]/output/[game-name]-contribution-graph.svg">
+&lt;/picture>
+
+_generated with [abozanona/pacman-contribution-graph](https://abozanona.github.io/pacman-contribution-graph/)_</code></pre></li>
+<li>That's it! You can also check my github repo <a target="__blank" href="https://github.com/abozanona/abozanona">@abozanona</a> for an example </li>
+			</ol>
+
+			<h3>Method 4: Gitlab Pipeline</h3>
+			<ol>
+				<li>Create a new repository with the same name as your gitlab username</li>
+				<li>
+					Generate & Setup Push Token
+					<ol>
+						<li>Open the repository, and from left sidebar navigate to settings => Access Token tab.</li>
+						<li>Generate a new Access Token with the name `CI/CD Push Token` & scope `write_repository`. Access tokens are only valid for 1 year maximum.</li>
+						<li>From left sidebar navigate to settings => CI/CD.</li>
+						<li>In Variables section, add a new variable with the name `CI_PUSH_TOKEN` and the value of the Access Token. Make sure that the variable is `Masked` & `Protect`.</li>
+					</ol>
+				</li>
+				<li>
+					In the repository, create a <code>.gitlab-ci.yml</code> file with the following content.
+					Replace <code>[game-name]</code> with your chosen game. Add one block per game.
+					<pre><code>stages:
+	- generate
+	- deploy
+
+variables:
+	GIT_SUBMODULE_STRATEGY: recursive
+
+generate_graphs:
+	stage: generate
+	image: node:20
+	script:
+		- mkdir -p dist
+		- npm install -g pacman-contribution-graph
+		# Replace [game-name] with the game you want; repeat for each game
+		- pacman-contribution-graph --game [game-name] --platform gitlab --username "$CI_PROJECT_NAMESPACE" --gameTheme gitlab --output dist/[game-name]-contribution-graph.svg
+		- pacman-contribution-graph --game [game-name] --platform gitlab --username "$CI_PROJECT_NAMESPACE" --gameTheme gitlab-dark --output dist/[game-name]-contribution-graph-dark.svg
+	artifacts:
+		paths:
+			- dist/*.svg
+		expire_in: 1 hour
+	rules:
+		- if: '$CI_PIPELINE_SOURCE == "schedule"'
+		- if: '$CI_PIPELINE_SOURCE == "push"'
+
+deploy_to_readme:
+	stage: deploy
+	image: alpine:latest
+	script:
+		- apk add --no-cache git
+		- mkdir -p output
+		- cp dist/*.svg output/
+		- git remote set-url origin https://gitlab-ci-token:${CI_PUSH_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git
+		- git config --global user.email "arcade-bot@example.com"
+		- git config --global user.name "Arcade Bot"
+		- git add output/*.svg
+		- git commit -m "Update arcade contribution graphs [ci skip]" || echo "No changes"
+		- git push origin HEAD:main
+	rules:
+		- if: '$CI_PIPELINE_SOURCE == "schedule"'
+		- if: '$CI_PIPELINE_SOURCE == "push"'</code></pre>
+				</li>
+				<li>Create <code>README.md</code> file in your gitlab repo with the following content. Change <code>[USERNAME]</code> with your gitlab username and <code>[game-name]</code> with the game. Repeat the block for each game you enabled.
+				<pre><code>&lt;picture>
+  &lt;source media="(prefers-color-scheme: dark)" srcset="https://gitlab.com/[USERNAME]/[USERNAME]/-/raw/main/output/[game-name]-contribution-graph-dark.svg">
+  &lt;source media="(prefers-color-scheme: light)" srcset="https://gitlab.com/[USERNAME]/[USERNAME]/-/raw/main/output/[game-name]-contribution-graph.svg">
+  &lt;img alt="[game-name] contribution graph" src="https://gitlab.com/[USERNAME]/[USERNAME]/-/raw/main/output/[game-name]-contribution-graph.svg">
+&lt;/picture>
+
+_generated with [abozanona/pacman-contribution-graph](https://abozanona.github.io/pacman-contribution-graph/)_</code></pre></li>
+<li>
+	Schedule pipeline running
+	<ul>
+		<li>Go to your project in GitLab</li>
+		<li>In the left sidebar, navigate to Build > Pipeline schedules (sometimes under CI/CD > Schedules)</li>
+		<li>Click New schedule</li>
+		<li>
+			In the form:
+			<ul>
+				<li>Interval pattern: Enter a cron expression for daily runs. For example, <code>0 2 \* \* \*</code> to run every day at 2:00 AM (UTC).</li>
+				<li>Timezone: Select your preferred timezone.</li>
+				<li>Target branch: Choose the main branch.</li>
+			</ul>
+		</li>
+		<li>Click Save pipeline schedule (or Create pipeline schedule).</li>
+	</ul>
+</li>
+<li>That's it! You can also check my gitlab repo <a target="__blank" href="https://gitlab.com/abozanona/abozanona">@abozanona</a> for an example </li>
+			</ol>
+			<h3>Method 5: Using cli</h3>
+			<ol>
+				<li>Run <code>npm install -g pacman-contribution-graph</code></li>
+				<li>Run the CLI, replacing <code>[game-name]</code> with your chosen game:
+				<pre><code>pacman-contribution-graph --game [game-name] --platform github --username your_username --gameTheme github --output [game-name]-contribution-graph.svg</code></pre>
+				</li>
+			</ol>
+
+		</div>
+
+		<footer class="bg-light py-3 mt-5 invisible">
+			<div class="container text-center">
+				<div>
+					<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+					<span id="busuanzi_container_site_pv">Total visits: <span id="busuanzi_value_site_pv"></span></span>
+					<span class="mx-2">|</span>
+					<span id="busuanzi_container_site_uv">Unique visitors: <span id="busuanzi_value_site_uv"></span></span>
+				</div>
+			</div>
+		</footer>
+
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+			<script type="module">
+				import {
+					ArcadeRenderer,
+					GAME_REGISTRY,
+					PLATFORM_REGISTRY,
+					SCENARIO_REGISTRY
+				} from './dist/pacman-contribution-graph.js';
+
+			const generateButton = document.getElementById('generate');
+			const usernameInput = document.getElementById('username');
+			const platformSelect = document.getElementById('platform');
+			const gameSelect = document.getElementById('game');
+			const themeSelect = document.getElementById('theme');
+			const scenarioSelect = document.getElementById('scenario');
+			const playerStyleSelect = document.getElementById('playerStyle');
+			const playerStyleRow = document.getElementById('playerStyleRow');
+			const svgContainer = document.getElementById('svgContainer');
+			const svgHolder = document.getElementById('svgholder');
+			const generationLoading = document.getElementById('generationLoading');
+			const downloadSvgButton = document.getElementById('downloadSvg');
+			const userAvatar = document.getElementById('userAvatar');
+			const userNotFound = document.getElementById('userNotFound');
+			const points = document.getElementById('points');
+			const githubAccessToken = document.getElementById('githubAccessToken');
+			const statGhosts = document.getElementById('statGhosts');
+
+			function appendOption(select, value, label) {
+				const option = document.createElement('option');
+				option.value = value;
+				option.textContent = label;
+				select.appendChild(option);
+			}
+
+			function appendCodeChip(cell, value) {
+				const chip = document.createElement('code');
+				chip.textContent = value;
+				if (cell.childNodes.length) cell.appendChild(document.createTextNode(', '));
+				cell.appendChild(chip);
+			}
+
+			function fillSelect(select, registry, optionsCell) {
+				for (const [value, entry] of Object.entries(registry)) {
+					appendOption(select, value, entry.label);
+					if (optionsCell) appendCodeChip(optionsCell, value);
+				}
+			}
+
+			const scenarios = Object.keys(SCENARIO_REGISTRY);
+
+			fillSelect(platformSelect, PLATFORM_REGISTRY, document.getElementById('platformOptionsCell'));
+			fillSelect(scenarioSelect, SCENARIO_REGISTRY, document.getElementById('scenarioOptionsCell'));
+			scenarioSelect.value = scenarios[0];
+
+			// Populate game selector and config-table cell dynamically from the registry
+			const gameOptionsCell = document.getElementById('gameOptionsCell');
+			for (const [id, entry] of Object.entries(GAME_REGISTRY)) {
+				appendOption(gameSelect, id, entry.label);
+				appendCodeChip(gameOptionsCell, id);
+			}
+
+			generateButton.disabled = true;
+
+			gameSelect.addEventListener('change', () => updateConfigurationControls());
+
+			let currentSvgBlob = null;
+			let isGenerating = false;
+
+			usernameInput.addEventListener('input', debounce(checkUser, 500));
+			platformSelect.addEventListener('change', () => {
+				updateConfigurationControls();
+				checkUser();
+			});
+
+			updateConfigurationControls();
+
+			function debounce(func, wait) {
+				let timeout;
+				return function executedFunction(...args) {
+					const later = () => {
+						clearTimeout(timeout);
+						func(...args);
+					};
+					clearTimeout(timeout);
+					timeout = setTimeout(later, wait);
+				};
+			}
+
+			function updateConfigurationControls() {
+				const isScenarioPlatform = platformSelect.value === 'scenario';
+				const isGithubPlatform = platformSelect.value === 'github';
+				const isPacmanGame = gameSelect.value === 'pacman';
+
+				gameSelect.disabled = isGenerating;
+				platformSelect.disabled = isGenerating;
+				themeSelect.disabled = isGenerating;
+				scenarioSelect.disabled = isGenerating || !isScenarioPlatform;
+				usernameInput.disabled = isGenerating || isScenarioPlatform;
+				githubAccessToken.disabled = isGenerating || !isGithubPlatform;
+				playerStyleSelect.disabled = isGenerating || !isPacmanGame;
+				playerStyleRow.classList.toggle('text-muted', !isPacmanGame);
+				statGhosts.style.display = isPacmanGame ? '' : 'none';
+			}
+
+			function setGenerating(nextIsGenerating) {
+				isGenerating = nextIsGenerating;
+				generationLoading.style.display = nextIsGenerating ? 'flex' : 'none';
+				if (nextIsGenerating) generateButton.disabled = true;
+
+				updateConfigurationControls();
+			}
+
+			function buildRendererConfig() {
+				const game = gameSelect.value;
+				const platform = platformSelect.value;
+				return {
+					game,
+					platform,
+					username: usernameInput.value,
+					gameTheme: themeSelect.value,
+					...(platform === 'scenario' ? { scenario: scenarioSelect.value } : {}),
+					...(platform === 'github' ? { githubSettings: { accessToken: githubAccessToken.value } } : {}),
+					...(game === 'pacman' ? { playerStyle: playerStyleSelect.value } : {})
+				};
+			}
+
+			function showGenerationResult(result, game) {
+				const svgBlob = new Blob([result.animatedSVG], { type: 'image/svg+xml;charset=utf-8' });
+				const svgUrl = URL.createObjectURL(svgBlob);
+				svgHolder.src = svgUrl;
+				currentSvgBlob = { url: svgUrl, game };
+
+				if (result.stats) {
+					points.innerText = result.stats.totalScore;
+					steps.innerText = result.stats.steps;
+					ghostsEaten.innerText = result.stats.ghostsEaten ?? 0;
+				} else if (result.pointsSum !== undefined) {
+					points.innerText = result.pointsSum;
+				}
+
+				if (result.gameOver) console.log('Game Over');
+			}
+
+			function showGenerationError(error) {
+				const message = error instanceof Error ? error.message : String(error);
+				console.error('Generation failed:', message);
+				userNotFound.textContent = message || 'Generation failed';
+				userNotFound.style.display = 'block';
+			}
+
+			function waitForLoadingPaint() {
+				return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+			}
+
+			async function checkUser() {
+				const username = usernameInput.value;
+				const platform = platformSelect.value;
+				if (isGenerating) {
+					generateButton.disabled = true;
+					return;
+				}
+				if (platform === 'scenario') {
+					userAvatar.style.display = 'none';
+					userNotFound.style.display = 'none';
+					generateButton.disabled = false;
+					return;
+				}
+
+				if (!username) {
+					userAvatar.style.display = 'none';
+					userNotFound.style.display = 'none';
+					generateButton.disabled = true;
+					return;
+				}
+
+				if (platform === 'github') {
+					try {
+						const response = await fetch(`https://api.github.com/users/${username}`);
+						if (response.ok) {
+							const data = await response.json();
+							userAvatar.src = data.avatar_url;
+							userAvatar.style.display = 'inline';
+							userNotFound.style.display = 'none';
+							generateButton.disabled = false;
+						} else {
+							throw new Error('User not found');
+						}
+					} catch (error) {
+						userAvatar.style.display = 'none';
+						userNotFound.style.display = 'block';
+						generateButton.disabled = true;
+					}
+				} else {
+					try {
+						const response = await fetch(`https://gitlab.com/api/v4/users?username=${username}`);
+						if (response.ok) {
+							const data = await response.json();
+							if (!data.length) {
+								throw new Error('User not found');
+							}
+							userAvatar.src = data[0].avatar_url;
+							userAvatar.style.display = 'inline';
+							userNotFound.style.display = 'none';
+							generateButton.disabled = false;
+						} else {
+							throw new Error('User not found');
+						}
+					} catch (error) {
+						userAvatar.style.display = 'none';
+						userNotFound.style.display = 'block';
+						generateButton.disabled = true;
+					}
+				}
+			}
+
+			generateButton.addEventListener('click', () => {
+				const config = buildRendererConfig();
+				const result = { animatedSVG: '', gameOver: false };
+
+				svgContainer.style.display = 'block';
+				downloadSvgButton.style.display = 'inline-block';
+				setGenerating(true);
+
+				waitForLoadingPaint()
+					.then(() => {
+						const renderer = new ArcadeRenderer({
+							...config,
+							svgCallback: (svg) => (result.animatedSVG = svg),
+							gameStatsCallback: (stats) => (result.stats = stats),
+							gameOverCallback: () => (result.gameOver = true),
+							pointsIncreasedCallback: (pointsSum) => (result.pointsSum = pointsSum)
+						});
+						return renderer.start();
+					})
+					.then(() => showGenerationResult(result, config.game))
+					.catch(showGenerationError)
+					.finally(() => {
+						setGenerating(false);
+						checkUser();
+					});
+			});
+
+			downloadSvgButton.addEventListener('click', () => {
+				if (currentSvgBlob) {
+					const link = document.createElement('a');
+					link.href = currentSvgBlob.url;
+					link.download = 'acrade-contributions.svg';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+				}
+			});
+		</script>
+
+		<!-- Leaderboard snapshot -->
+		<script>
+			const LB_API = 'https://elec.abozanona.me/leaderboard_api.php';
+
+			function snapAvatar(username, platform) {
+				const src = platform === 'github'
+					? `https://github.com/${encodeURIComponent(username)}.png?size=48`
+					: `https://gitlab.com/${encodeURIComponent(username)}.png`;
+				return `<img class="lb-mini-avatar" src="${src}" alt="" onerror="this.style.display='none'">`;
+			}
+
+			function snapRankClass(n) {
+				return n <= 3 ? `lb-mini-rank lb-mini-rank-${n}` : 'lb-mini-rank';
+			}
+
+			function snapProfileURL(username, platform) {
+				return platform === 'github' ? `https://github.com/${username}` : `https://gitlab.com/${username}`;
+			}
+
+			function renderSnap(containerId, entries, valFn) {
+				const el = document.getElementById(containerId);
+				if (!el) return;
+				if (!entries || entries.length === 0) {
+					el.innerHTML = 'No data yet';
+					return;
+				}
+				el.innerHTML = entries.slice(0, 3).map(e => `
+					<a class="lb-mini-row" href="${snapProfileURL(e.username, e.platform)}" target="_blank" rel="noopener">
+						<span class="${snapRankClass(e.rank)}">${e.rank}</span>
+						${snapAvatar(e.username, e.platform)}
+						<span class="lb-mini-name">${e.username}</span>
+						<span class="lb-mini-val">${valFn(e.value)}</span>
+					</a>
+				`).join('');
+			}
+
+			(async () => {
+				try {
+					const res = await fetch(LB_API);
+					if (!res.ok) throw new Error();
+					const data = await res.json();
+					renderSnap('snap-score',   data.top_score,    v => `${v.toLocaleString()} pts`);
+					renderSnap('snap-fastest', data.fastest,      v => `${v.toLocaleString()} steps`);
+					renderSnap('snap-ghost',   data.ghost_hunter, v => `${v} 👻`);
+				} catch {
+					['snap-score','snap-fastest','snap-ghost'].forEach(id => {
+						const el = document.getElementById(id);
+						if (el) el.innerHTML = 'Could not load';
+					});
+				}
+			})();
+		</script>
+	</body>
+</html>
