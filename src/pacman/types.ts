@@ -13,7 +13,7 @@ export enum PlayerStyle {
 	OPPORTUNISTIC = 'opportunistic'
 }
 
-/* ───────────────────────── Pac-Man & Ghosts ────────────────────── */
+/* ───────────────────────── Pac-Man ────────────────────── */
 export interface Pacman {
 	x: number;
 	y: number;
@@ -24,25 +24,6 @@ export interface Pacman {
 	powerupRemainingDuration: number;
 	recentPositions: string[];
 	target?: Point2d;
-	ghostsEaten: number;
-}
-
-export type GhostName = 'blinky' | 'clyde' | 'inky' | 'pinky' | 'eyes';
-
-export interface Ghost {
-	x: number;
-	y: number;
-	name: GhostName;
-	originalName?: GhostName;
-	scared: boolean;
-	direction: 'right' | 'left' | 'up' | 'down';
-	target?: Point2d;
-	inHouse: boolean;
-	respawnCounter: number;
-	freezeCounter: number;
-	justReleasedFromHouse: boolean;
-	subX?: number;
-	subY?: number;
 }
 
 /* ───────────────────────── Store ───────────────────────────── */
@@ -51,14 +32,12 @@ export interface StoreType extends BaseStore {
 	aliveSteps: number;
 	contributions: Contribution[];
 	pacman: Pacman;
-	ghosts: Ghost[];
 	grid: GridCell[][];
 	monthLabels: string[];
 	pacmanMouthOpen: boolean;
 	gameInterval: number;
 	gameHistory: {
 		pacman: Pacman;
-		ghosts: Ghost[];
 	}[];
 	/** Initial cell colors [col][row], captured before any cells are eaten. */
 	initialColors: string[][];

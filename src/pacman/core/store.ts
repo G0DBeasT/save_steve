@@ -12,10 +12,8 @@ export const Store: StoreType = {
 		totalPoints: 0,
 		deadRemainingDuration: 0,
 		powerupRemainingDuration: 0,
-		recentPositions: [],
-		ghostsEaten: 0
+		recentPositions: []
 	},
-	ghosts: [],
 	grid: [],
 	monthLabels: [],
 	pacmanMouthOpen: true,

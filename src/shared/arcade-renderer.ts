@@ -1,9 +1,4 @@
-import { BombermanConfig, BombermanRenderer } from '../bomberman/index';
-import { BreakoutConfig, BreakoutRenderer } from '../breakout/index';
-import { GalagaConfig, GalagaRenderer } from '../galaga/index';
-import { MinesweeperConfig, MinesweeperRenderer } from '../minesweeper/index';
 import { PacmanConfig, PacmanRenderer, PlayerStyle } from '../pacman/index';
-import { PuzzleBobbleConfig, PuzzleBobbleRenderer } from '../puzzle-bobble/index';
 import { BaseConfig } from './types';
 
 export { PlayerStyle };
@@ -22,26 +17,6 @@ const gameRegistry = {
 	pacman: {
 		label: '👻 Pac-Man',
 		factory: (conf: ArcadeConfig) => new PacmanRenderer(conf as PacmanConfig)
-	},
-	breakout: {
-		label: '🧱 Breakout',
-		factory: (conf: ArcadeConfig) => new BreakoutRenderer(conf as BreakoutConfig)
-	},
-	galaga: {
-		label: '🚀 Galaga',
-		factory: (conf: ArcadeConfig) => new GalagaRenderer(conf as GalagaConfig)
-	},
-	'puzzle-bobble': {
-		label: '🫧 Puzzle Bobble',
-		factory: (conf: ArcadeConfig) => new PuzzleBobbleRenderer(conf as PuzzleBobbleConfig)
-	},
-	bomberman: {
-		label: '💣 Bomberman',
-		factory: (conf: ArcadeConfig) => new BombermanRenderer(conf as BombermanConfig)
-	},
-	minesweeper: {
-		label: '💠 Minesweeper',
-		factory: (conf: ArcadeConfig) => new MinesweeperRenderer(conf as MinesweeperConfig)
 	}
 } satisfies Record<string, GameRegistryEntry>;
 

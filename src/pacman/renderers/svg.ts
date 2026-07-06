@@ -1,13 +1,22 @@
-import { CELL_SIZE, DELTA_TIME, GAP_SIZE, GHOSTS, GRID_HEIGHT, GRID_WIDTH, PACMAN_COLOR, WALLS } from '../core/constants';
-import { AnimationData, GhostName, StoreType } from '../types';
+import { CELL_SIZE, DELTA_TIME, GAP_SIZE, GRID_HEIGHT, GRID_WIDTH, PACMAN_COLOR, WALLS, STEVE_BASE64 } from '../core/constants';
+import { AnimationData, StoreType } from '../types';
 import { Utils } from '../../shared/utils/utils';
 import { RendererUnits } from './renderer-units';
 
 const SVG_KEY_TIMES_PRECISION = 4;
 
 const generateAnimatedSVG = (store: StoreType) => {
+	const POST_GAME_FRAMES = 50; // frames for sorting and holding
+	const actualGameFrames = store.gameHistory.length;
+	if (actualGameFrames > 0) {
+		const lastState = store.gameHistory[actualGameFrames - 1];
+		for (let i = 0; i < POST_GAME_FRAMES; i++) {
+			store.gameHistory.push(lastState);
+		}
+	}
+
 	const svgWidth = GRID_WIDTH * (CELL_SIZE + GAP_SIZE);
-	const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 30;
+	const svgHeight = GRID_HEIGHT * (CELL_SIZE + GAP_SIZE) + 45;
 	const totalDurationMs = store.gameHistory.length * DELTA_TIME;
 
 	let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
@@ -21,8 +30,6 @@ const generateAnimatedSVG = (store: StoreType) => {
 		</info>
 	</metadata>`;
 	svg += `<rect width="100%" height="100%" fill="${Utils.getCurrentTheme(store).gridBackground}"/>`;
-
-	svg += generateGhostsPredefinition();
 
 	let lastMonth = '';
 	for (let y = 0; y < GRID_WIDTH; y++) {
@@ -80,159 +87,19 @@ const generateAnimatedSVG = (store: StoreType) => {
 	}
 
 	// Pacman
-	const pacmanColorAnimation = generateChangingValuesAnimation(
-		store,
-		store.gameHistory.map((el) => RendererUnits.generatePacManColors(el.pacman))
-	);
 	const pacmanPositionAnimation = generateChangingValuesAnimation(store, generatePacManPositions(store));
 	const pacmanRotationAnimation = generateChangingValuesAnimation(store, generatePacManRotations(store));
-	svg += `<path id="pacman" d="${generatePacManPath(0.55)}" fill="${PACMAN_COLOR}">
-		<animate attributeName="fill" dur="${totalDurationMs}ms" repeatCount="indefinite"
-			keyTimes="${pacmanColorAnimation.keyTimes}"
-			values="${pacmanColorAnimation.values}"/>
+	svg += `<g id="pacman" transform="translate(0,0)">
 		<animateTransform attributeName="transform" type="translate" dur="${totalDurationMs}ms" repeatCount="indefinite"
 			keyTimes="${pacmanPositionAnimation.keyTimes}"
 			values="${pacmanPositionAnimation.values}"
-			additive="sum"/>
-		<animateTransform attributeName="transform" type="rotate" dur="${totalDurationMs}ms" repeatCount="indefinite"
-			keyTimes="${pacmanRotationAnimation.keyTimes}"
-			values="${pacmanRotationAnimation.values}"
-			calcMode="discrete"
-			additive="sum"/>
-		<animate attributeName="d" dur="0.5s" repeatCount="indefinite"
-			values="${generatePacManPath(0.55)};${generatePacManPath(0.05)};${generatePacManPath(0.55)}"/>
-	</path>`;
+			additive="replace"/>
+		<image href="${STEVE_BASE64}" width="${CELL_SIZE}" height="${CELL_SIZE}" />
+	</g>`;
 
-	store.ghosts.forEach((ghost, index) => {
-		const ghostPositionAnimation = generateChangingValuesAnimation(store, generateGhostPositions(store, index));
-
-		svg += `<g id="ghost${index}" transform="translate(0,0)">
-			<animateTransform attributeName="transform" type="translate" 
-				dur="${totalDurationMs}ms" repeatCount="indefinite"
-				keyTimes="${ghostPositionAnimation.keyTimes}"
-				values="${ghostPositionAnimation.values}"
-				additive="replace"/>`;
-
-		const stateChanges = mapGhostStateChanges(store, index);
-
-		for (const [state, keyframes] of Object.entries(stateChanges)) {
-			if (keyframes.length === 0) continue;
-
-			const href = `#ghost-${state}`;
-
-			const keyTimes = keyframes.map((kf) => kf.time.toFixed(SVG_KEY_TIMES_PRECISION)).join(';');
-			const values = keyframes.map((kf) => (kf.visible ? 'visible' : 'hidden')).join(';');
-
-			const initialVisibility = keyframes[0].visible ? 'visible' : 'hidden';
-
-			svg += `<use href="${href}" width="${CELL_SIZE}" height="${CELL_SIZE}" visibility="${initialVisibility}">
-				<animate attributeName="visibility" 
-					dur="${totalDurationMs}ms" repeatCount="indefinite"
-					keyTimes="${keyTimes}"
-					values="${values}" />
-			</use>`;
-		}
-
-		svg += `</g>`;
-	});
-
+	svg += generateStack(store, svgWidth, svgHeight, actualGameFrames);
 	svg += '</svg>';
 	return svg;
-};
-
-function mapGhostStateChanges(store: StoreType, ghostIndex: number) {
-	// Maps each "name-direction" / "scared" / "eyes-direction" state to an array
-	// of visibility keyframes, so each state can be shown/hidden independently.
-	const stateChanges: Record<string, { time: number; visible: boolean }[]> = {};
-
-	const allPossibleStates = [
-		'blinky-up',
-		'blinky-down',
-		'blinky-left',
-		'blinky-right',
-		'inky-up',
-		'inky-down',
-		'inky-left',
-		'inky-right',
-		'pinky-up',
-		'pinky-down',
-		'pinky-left',
-		'pinky-right',
-		'clyde-up',
-		'clyde-down',
-		'clyde-left',
-		'clyde-right',
-		'eyes-up',
-		'eyes-down',
-		'eyes-left',
-		'eyes-right',
-		'scared'
-	];
-
-	allPossibleStates.forEach((state) => {
-		stateChanges[state] = [{ time: 0, visible: false }];
-	});
-
-	const initialGhost = store.ghosts[ghostIndex];
-	if (!initialGhost) return stateChanges;
-
-	const initialState = initialGhost.scared
-		? 'scared'
-		: initialGhost.name === 'eyes'
-			? `eyes-${initialGhost.direction || 'right'}`
-			: `${initialGhost.name}-${initialGhost.direction || 'right'}`;
-
-	stateChanges[initialState] = [{ time: 0, visible: true }];
-
-	let lastState = initialState;
-
-	store.gameHistory.forEach((state, frameIndex) => {
-		if (ghostIndex >= state.ghosts.length) return;
-
-		const ghost = state.ghosts[ghostIndex];
-		const currentTime = frameIndex / (store.gameHistory.length - 1);
-
-		const currentState = ghost.scared
-			? 'scared'
-			: ghost.name === 'eyes'
-				? `eyes-${ghost.direction || 'right'}`
-				: `${ghost.name}-${ghost.direction || 'right'}`;
-
-		if (currentState !== lastState) {
-			stateChanges[lastState].push({ time: currentTime, visible: false });
-
-			if (!stateChanges[currentState]) {
-				stateChanges[currentState] = [{ time: 0, visible: false }];
-			}
-			stateChanges[currentState].push({ time: currentTime, visible: true });
-
-			lastState = currentState;
-		}
-	});
-
-	stateChanges[lastState].push({ time: 1, visible: true });
-
-	Object.keys(stateChanges).forEach((state) => {
-		if (state !== lastState && stateChanges[state].length > 0) {
-			const lastKeyframe = stateChanges[state][stateChanges[state].length - 1];
-			if (lastKeyframe.time < 1) {
-				stateChanges[state].push({ time: 1, visible: false });
-			}
-		}
-	});
-
-	return stateChanges;
-}
-
-const generatePacManPath = (mouthAngle: number) => {
-	const radius = CELL_SIZE / 2;
-	const startAngle = mouthAngle;
-	const endAngle = 2 * Math.PI - mouthAngle;
-
-	return `M ${radius},${radius}
-            L ${radius + radius * Math.cos(startAngle)},${radius + radius * Math.sin(startAngle)}
-            A ${radius},${radius} 0 1,1 ${radius + radius * Math.cos(endAngle)},${radius + radius * Math.sin(endAngle)}
-            Z`;
 };
 
 const generatePacManPositions = (store: StoreType): string[] => {
@@ -298,68 +165,6 @@ const getCellAnimationData = (store: StoreType, x: number, y: number): Animation
 	return { keyTimes: kTimes.join(';'), values: kValues.join(';') };
 };
 
-const generateGhostPositions = (store: StoreType, ghostIndex: number): string[] => {
-	return store.gameHistory.map((state) => {
-		if (ghostIndex >= state.ghosts.length) {
-			return '0,0'; // Default value for cases where the ghost does not exist
-		}
-		const ghost = state.ghosts[ghostIndex];
-		const fx = ghost.x + (ghost.subX ?? 0);
-		const fy = ghost.y + (ghost.subY ?? 0);
-		const x = fx * (CELL_SIZE + GAP_SIZE);
-		const y = fy * (CELL_SIZE + GAP_SIZE) + 15;
-		return `${x},${y}`;
-	});
-};
-
-const generateGhostsPredefinition = () => {
-	let defs = `<defs>`;
-
-	// For every regular ghost
-	['blinky', 'inky', 'pinky', 'clyde'].forEach((ghostName) => {
-		// For each direction
-		['up', 'down', 'left', 'right'].forEach((direction) => {
-			const ghostObj = GHOSTS[ghostName as GhostName] as Record<string, string>;
-
-			if (direction in ghostObj) {
-				defs += `
-                <symbol id="ghost-${ghostName}-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                    <image href="${ghostObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
-                </symbol>
-                `;
-			}
-		});
-	});
-
-	// Add the scared ghost
-	defs += `
-    <symbol id="ghost-scared" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-        <image href="${(GHOSTS['scared'] as { imgDate: string }).imgDate}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
-    </symbol>`;
-
-	// Add ghost eyes (for each direction)
-	['up', 'down', 'left', 'right'].forEach((direction) => {
-		if (GHOSTS['eyes'] && direction in (GHOSTS['eyes'] as Record<string, string>)) {
-			const eyesObj = GHOSTS['eyes'] as Record<string, string>;
-			defs += `
-            <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <image href="${eyesObj[direction]}" width="${CELL_SIZE}" height="${CELL_SIZE}"/>
-            </symbol>
-            `;
-		} else {
-			// Fallback if direction is not set
-			console.warn(`Imagem para eyes-${direction} não encontrada, usando placeholder`);
-			defs += `
-            <symbol id="ghost-eyes-${direction}" viewBox="0 0 ${CELL_SIZE} ${CELL_SIZE}">
-                <circle cx="${CELL_SIZE / 2}" cy="${CELL_SIZE / 2}" r="${CELL_SIZE / 3}" fill="white"/>
-            </symbol>
-            `;
-		}
-	});
-
-	defs += `</defs>`;
-	return defs;
-};
 
 const generateChangingValuesAnimation = (store: StoreType, changingValues: string[]): AnimationData => {
 	if (store.gameHistory.length !== changingValues.length) {
@@ -413,4 +218,98 @@ const generateChangingValuesAnimation = (store: StoreType, changingValues: strin
 
 export const SVG = {
 	generateAnimatedSVG
+};
+
+
+const generateStack = (store: StoreType, svgWidth: number, svgHeight: number, actualGameFrames: number): string => {
+	const totalFrames = store.gameHistory.length;
+	const totalDurationMs = totalFrames * DELTA_TIME;
+	
+	const eaten = store.cellEvents;
+	if (eaten.length === 0) return '';
+
+	// Get colors and normalize times
+	const stack = eaten.map(ev => {
+		return {
+			color: store.initialColors[ev.x]?.[ev.y] || '#39d353',
+			t: ev.frameIndex / Math.max(totalFrames - 1, 1)
+		};
+	});
+
+	const blocks: { color: string; ts: number[] }[] = [];
+	stack.forEach(({ color, t }) => {
+		const latest = blocks[blocks.length - 1];
+		if (latest?.color === color) latest.ts.push(t);
+		else blocks.push({ color, ts: [t] });
+	});
+
+	const m = svgWidth / stack.length;
+	
+	// Pre-calculate positions
+	const blocksWithPos = blocks.map((b) => {
+		return { ...b, w: b.ts.length * m, origX: 0, sortedX: 0 };
+	});
+	
+	let currX = 0;
+	blocksWithPos.forEach((b) => {
+		b.origX = currX;
+		currX += b.w;
+	});
+	
+	const sortedBlocks = [...blocksWithPos].sort((a, b) => a.color.localeCompare(b.color));
+	
+	currX = 0;
+	sortedBlocks.forEach((b) => {
+		b.sortedX = currX;
+		currX += b.w;
+	});
+
+	let svgElements = '';
+	let styles = `
+		.u { 
+			transform-origin: 0 0;
+			transform: scale(0,1);
+			animation: none linear ${totalDurationMs}ms infinite;
+		}
+	`;
+
+	let i = 0;
+	for (const b of blocksWithPos) {
+		const { color, ts, origX, sortedX, w } = b;
+		const id = "u" + (i++).toString(36);
+		const animationName = id;
+
+		const tStart = (actualGameFrames + 10) / Math.max(totalFrames, 1);
+		const tEnd = (actualGameFrames + 40) / Math.max(totalFrames, 1);
+
+		svgElements += `<rect class="u ${id}" height="10" width="${(w + 0.6).toFixed(1)}" x="${origX.toFixed(1)}" y="${svgHeight - 15}">
+			<animate attributeName="x" 
+				values="${origX.toFixed(1)};${origX.toFixed(1)};${sortedX.toFixed(1)};${sortedX.toFixed(1)}" 
+				keyTimes="0;${tStart.toFixed(4)};${tEnd.toFixed(4)};1" 
+				dur="${totalDurationMs}ms" 
+				repeatCount="indefinite" />
+		</rect>\n`;
+
+		// Build keyframes
+		let keyframes = '';
+		const length = ts.length;
+		ts.forEach((t, i) => {
+			keyframes += `${((t - 0.0001) * 100).toFixed(4)}% { transform: scale(${(i / length).toFixed(3)}, 1); }\n`;
+			keyframes += `${((t + 0.0001) * 100).toFixed(4)}% { transform: scale(${((i + 1) / length).toFixed(3)}, 1); }\n`;
+		});
+		keyframes += `100% { transform: scale(1, 1); }\n`;
+
+		styles += `
+			@keyframes ${animationName} {
+				${keyframes}
+			}
+			.u.${id} {
+				fill: ${color};
+				animation-name: ${animationName};
+				transform-origin: ${origX.toFixed(1)}px 0;
+			}
+		`;
+	}
+
+	return `<style>${styles}</style>\n<g id="progress-bar">\n${svgElements}\n</g>`;
 };
