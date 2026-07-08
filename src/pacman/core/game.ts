@@ -40,12 +40,27 @@ const startGame = async (store: StoreType) => {
 		placePacman(store);
 	}
 
-	const MAX_FRAMES = 3000;
+	const MAX_FRAMES = 10000;
 
 	while (remainingCells() && store.gameHistory.length < MAX_FRAMES) {
 		await updateGame(store);
 	}
-	await updateGame(store);
+	
+	const remaining = remainingCells();
+	if (remaining) {
+		const svg = SVG.generateAnimatedSVG(store);
+		store.config.svgCallback(svg);
+		if (store.config.gameStatsCallback) {
+			store.config.gameStatsCallback({
+				totalScore: store.pacman.totalPoints,
+				steps: store.aliveSteps,
+				ghostsEaten: 0
+			});
+		}
+		store.config.gameOverCallback();
+	} else {
+		await updateGame(store);
+	}
 };
 
 /* ---------- utilities ---------- */

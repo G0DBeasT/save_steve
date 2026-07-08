@@ -1,6 +1,6 @@
-name: 'generate-pacman-game-from-github-contribution-grid'
+name: 'generate-save-steve-game-from-github-contribution-grid'
 description: 'Generates arcade games from a GitHub user contributions grid and outputs animated SVGs'
-author: 'abozanona'
+author: 'harsh'
 
 runs:
     using: node20

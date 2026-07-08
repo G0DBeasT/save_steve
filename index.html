@@ -89,7 +89,7 @@
 	<body>
 		<nav class="navbar navbar-expand-lg fixed-top">
 			<div class="container">
-				<a class="navbar-brand" href="https://abozanona.github.io/pacman-contribution-graph/">Contribution Graph Games</a>
+				<a class="navbar-brand" href="https://abozanona.github.io/save-steve/">Contribution Graph Games</a>
 				<button
 					class="navbar-toggler"
 					type="button"
@@ -110,7 +110,7 @@
 							<a class="nav-link" href="leaderboard.html"><i class="fas fa-trophy"></i> Leaderboard</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="https://github.com/abozanona/pacman-contribution-graph/" target="_blank"
+							<a class="nav-link" href="https://github.com/abozanona/save-steve/" target="_blank"
 								><i class="fab fa-github"></i> GitHub</a
 							>
 						</li>
@@ -120,7 +120,7 @@
 							>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="https://abozanona.me/pacman-contribution-graph/" target="_blank"
+							<a class="nav-link" href="https://abozanona.me/save-steve/" target="_blank"
 								><i class="fas fa-blog"></i> Blog</a
 							>
 						</li>
@@ -328,9 +328,9 @@
 			<div class="section">
 				<h2>How to Use</h2>
 				<h3>Method 1: NPM Package</h3>
-				<pre><code>npm install pacman-contribution-graph
+				<pre><code>npm install save-steve
 
-import { ArcadeRenderer } from 'pacman-contribution-graph';
+import { ArcadeRenderer } from 'save-steve';
 
 // Replace [game-name] with a valid game name
 const pr = new ArcadeRenderer({
@@ -366,7 +366,7 @@ jobs:
 
 	steps:
 		- name: generate contribution graph SVGs
-		uses: abozanona/pacman-contribution-graph@main
+		uses: abozanona/save-steve@main
 		with:
 			github_user_name: ${{ github.repository_owner }}
 			# Comma-separated list of valid game names (default: pacman)
@@ -386,7 +386,7 @@ jobs:
   &lt;img alt="[game-name] contribution graph" src="https://raw.githubusercontent.com/[USERNAME]/[USERNAME]/output/[game-name]-contribution-graph.svg">
 &lt;/picture>
 
-_generated with [abozanona/pacman-contribution-graph](https://abozanona.github.io/pacman-contribution-graph/)_</code></pre></li>
+_generated with [abozanona/save-steve](https://abozanona.github.io/save-steve/)_</code></pre></li>
 <li>That's it! You can also check my github repo <a target="__blank" href="https://github.com/abozanona/abozanona">@abozanona</a> for an example </li>
 			</ol>
 
@@ -417,10 +417,10 @@ generate_graphs:
 	image: node:20
 	script:
 		- mkdir -p dist
-		- npm install -g pacman-contribution-graph
+		- npm install -g save-steve
 		# Replace [game-name] with the game you want; repeat for each game
-		- pacman-contribution-graph --game [game-name] --platform gitlab --username "$CI_PROJECT_NAMESPACE" --gameTheme gitlab --output dist/[game-name]-contribution-graph.svg
-		- pacman-contribution-graph --game [game-name] --platform gitlab --username "$CI_PROJECT_NAMESPACE" --gameTheme gitlab-dark --output dist/[game-name]-contribution-graph-dark.svg
+		- save-steve --game [game-name] --platform gitlab --username "$CI_PROJECT_NAMESPACE" --gameTheme gitlab --output dist/[game-name]-contribution-graph.svg
+		- save-steve --game [game-name] --platform gitlab --username "$CI_PROJECT_NAMESPACE" --gameTheme gitlab-dark --output dist/[game-name]-contribution-graph-dark.svg
 	artifacts:
 		paths:
 			- dist/*.svg
@@ -453,7 +453,7 @@ deploy_to_readme:
   &lt;img alt="[game-name] contribution graph" src="https://gitlab.com/[USERNAME]/[USERNAME]/-/raw/main/output/[game-name]-contribution-graph.svg">
 &lt;/picture>
 
-_generated with [abozanona/pacman-contribution-graph](https://abozanona.github.io/pacman-contribution-graph/)_</code></pre></li>
+_generated with [abozanona/save-steve](https://abozanona.github.io/save-steve/)_</code></pre></li>
 <li>
 	Schedule pipeline running
 	<ul>
@@ -475,9 +475,9 @@ _generated with [abozanona/pacman-contribution-graph](https://abozanona.github.i
 			</ol>
 			<h3>Method 5: Using cli</h3>
 			<ol>
-				<li>Run <code>npm install -g pacman-contribution-graph</code></li>
+				<li>Run <code>npm install -g save-steve</code></li>
 				<li>Run the CLI, replacing <code>[game-name]</code> with your chosen game:
-				<pre><code>pacman-contribution-graph --game [game-name] --platform github --username your_username --gameTheme github --output [game-name]-contribution-graph.svg</code></pre>
+				<pre><code>save-steve --game [game-name] --platform github --username your_username --gameTheme github --output [game-name]-contribution-graph.svg</code></pre>
 				</li>
 			</ol>
 
@@ -501,7 +501,7 @@ _generated with [abozanona/pacman-contribution-graph](https://abozanona.github.i
 					GAME_REGISTRY,
 					PLATFORM_REGISTRY,
 					SCENARIO_REGISTRY
-				} from './dist/pacman-contribution-graph.js';
+				} from './dist/save-steve.js';
 
 			const generateButton = document.getElementById('generate');
 			const usernameInput = document.getElementById('username');

@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 export default merge(common, {
 	mode: 'development',
 	output: {
-		filename: 'pacman-contribution-graph.js',
+		filename: 'save-steve.js',
 		path: path.resolve(__dirname, 'dist'),
 		library: {
 			type: 'module'

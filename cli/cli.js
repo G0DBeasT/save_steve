@@ -4,7 +4,7 @@
 import fs from 'fs';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
-import { ARCADE_GAMES, ArcadeRenderer, PLATFORMS, SCENARIOS } from '../dist/pacman-contribution-graph.min.js';
+import { ARCADE_GAMES, ArcadeRenderer, PLATFORMS, SCENARIOS } from '../dist/save-steve.min.js';
 
 const argv = yargs(hideBin(process.argv))
 	.option('game', {

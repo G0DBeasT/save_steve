@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
-import { ARCADE_GAMES, ArcadeRenderer } from 'pacman-contribution-graph';
+import { ARCADE_GAMES, ArcadeRenderer } from 'save-steve';
 import * as path from 'path';
 
 const STATS_ENDPOINT = 'https://elec.abozanona.me/receive_stats.php';
@@ -86,7 +86,7 @@ const generateSvg = async (game, userName, githubToken, theme, playerStyle) => {
 		const allStats = [];
 
 		for (const game of selectedGames) {
-			const prefix = `${game}-contribution-graph`;
+			const prefix = `save-steve`;
 
 			const lightResult = await generateSvg(game, userName, githubToken, 'github', playerStyle);
 			const lightFile = `dist/${prefix}.svg`;

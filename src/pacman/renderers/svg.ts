@@ -20,7 +20,7 @@ const generateAnimatedSVG = (store: StoreType) => {
 	const totalDurationMs = store.gameHistory.length * DELTA_TIME;
 
 	let svg = `<svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">`;
-	svg += `<desc>Generated with pacman-contribution-graph on ${new Date()}</desc>`;
+	svg += `<desc>Generated with save-steve on ${new Date()}</desc>`;
 	svg += `<metadata>
 		<info>
 			<frames>${store.gameHistory.length}</frames>
@@ -236,6 +236,17 @@ const generateStack = (store: StoreType, svgWidth: number, svgHeight: number, ac
 		};
 	});
 
+	let totalBlocksInitiallyOnBoard = 0;
+	store.initialColors.forEach(col => {
+		col.forEach(color => {
+			if (color !== Utils.getCurrentTheme(store).intensityColors[0]) {
+				totalBlocksInitiallyOnBoard++;
+			}
+		});
+	});
+
+	if (totalBlocksInitiallyOnBoard === 0) return '';
+
 	const blocks: { color: string; ts: number[] }[] = [];
 	stack.forEach(({ color, t }) => {
 		const latest = blocks[blocks.length - 1];
@@ -243,7 +254,7 @@ const generateStack = (store: StoreType, svgWidth: number, svgHeight: number, ac
 		else blocks.push({ color, ts: [t] });
 	});
 
-	const m = svgWidth / stack.length;
+	const m = svgWidth / totalBlocksInitiallyOnBoard;
 	
 	// Pre-calculate positions
 	const blocksWithPos = blocks.map((b) => {
@@ -265,51 +276,50 @@ const generateStack = (store: StoreType, svgWidth: number, svgHeight: number, ac
 	});
 
 	let svgElements = '';
-	let styles = `
-		.u { 
-			transform-origin: 0 0;
-			transform: scale(0,1);
-			animation: none linear ${totalDurationMs}ms infinite;
-		}
-	`;
 
 	let i = 0;
 	for (const b of blocksWithPos) {
 		const { color, ts, origX, sortedX, w } = b;
 		const id = "u" + (i++).toString(36);
-		const animationName = id;
 
 		const tStart = (actualGameFrames + 10) / Math.max(totalFrames, 1);
-		const tEnd = (actualGameFrames + 40) / Math.max(totalFrames, 1);
+		const tEnd = (actualGameFrames + 20) / Math.max(totalFrames, 1);
 
-		svgElements += `<rect class="u ${id}" height="10" width="${(w + 0.6).toFixed(1)}" x="${origX.toFixed(1)}" y="${svgHeight - 15}">
+		let widthKeyTimes: number[] = [0];
+		let widthValues: number[] = [0];
+
+		ts.forEach((t, i) => {
+			const roundedT = Number(t.toFixed(SVG_KEY_TIMES_PRECISION));
+			if (roundedT !== widthKeyTimes[widthKeyTimes.length - 1]) {
+				widthKeyTimes.push(roundedT);
+				widthValues.push((i + 1) * m);
+			} else {
+				widthValues[widthValues.length - 1] = (i + 1) * m;
+			}
+		});
+
+		if (widthKeyTimes[widthKeyTimes.length - 1] !== 1) {
+			widthKeyTimes.push(1);
+			widthValues.push(widthValues[widthValues.length - 1]);
+		}
+
+		const wKeyTimesStr = widthKeyTimes.join(';');
+		const wValuesStr = widthValues.map(v => v.toFixed(1)).join(';');
+
+		svgElements += `<rect id="${id}" height="10" fill="${color}" x="${origX.toFixed(1)}" y="${svgHeight - 15}">
 			<animate attributeName="x" 
 				values="${origX.toFixed(1)};${origX.toFixed(1)};${sortedX.toFixed(1)};${sortedX.toFixed(1)}" 
 				keyTimes="0;${tStart.toFixed(4)};${tEnd.toFixed(4)};1" 
 				dur="${totalDurationMs}ms" 
 				repeatCount="indefinite" />
+			<animate attributeName="width"
+				calcMode="discrete"
+				values="${wValuesStr}"
+				keyTimes="${wKeyTimesStr}"
+				dur="${totalDurationMs}ms"
+				repeatCount="indefinite" />
 		</rect>\n`;
-
-		// Build keyframes
-		let keyframes = '';
-		const length = ts.length;
-		ts.forEach((t, i) => {
-			keyframes += `${((t - 0.0001) * 100).toFixed(4)}% { transform: scale(${(i / length).toFixed(3)}, 1); }\n`;
-			keyframes += `${((t + 0.0001) * 100).toFixed(4)}% { transform: scale(${((i + 1) / length).toFixed(3)}, 1); }\n`;
-		});
-		keyframes += `100% { transform: scale(1, 1); }\n`;
-
-		styles += `
-			@keyframes ${animationName} {
-				${keyframes}
-			}
-			.u.${id} {
-				fill: ${color};
-				animation-name: ${animationName};
-				transform-origin: ${origX.toFixed(1)}px 0;
-			}
-		`;
 	}
 
-	return `<style>${styles}</style>\n<g id="progress-bar">\n${svgElements}\n</g>`;
+	return `<g id="progress-bar">\n${svgElements}\n</g>`;
 };

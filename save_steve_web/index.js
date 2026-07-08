@@ -1,5 +1,5 @@
 import http from 'http';
-import { PacmanRenderer } from 'pacman-contribution-graph';
+import { PacmanRenderer } from 'save-steve';
 import querystring from 'querystring';
 import url from 'url';
 
