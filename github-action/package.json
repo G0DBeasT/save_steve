@@ -1,6 +1,6 @@
 {
 	"name": "@save-steve/action",
-	"version": "5.3.1",
+	"version": "5.3.2",
 	"scripts": {
 		"build": "ncc build src/index.js -o dist"
 	},
