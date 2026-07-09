@@ -49,29 +49,16 @@ jobs:
       - name: Build main package
         run: pnpm build
 
-      - name: Publish main package to npm
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Update github-action package.json
         run: |
           VERSION=${{ steps.version.outputs.new_version }}
           cd github-action
           npm pkg set version="$VERSION"
-          npm pkg set dependencies.pacman-contribution-graph="$VERSION"
 
       - name: Install github-action dependencies
-        # Retry until the newly published version propagates on the npm registry
         run: |
-          VERSION=${{ steps.version.outputs.new_version }}
           cd github-action
-          for i in $(seq 1 12); do
-            echo "Attempt $i: installing pacman-contribution-graph@$VERSION..."
-            pnpm install --no-frozen-lockfile && break
-            echo "Not available yet. Waiting 15s..."
-            sleep 15
-          done
+          pnpm install --no-frozen-lockfile
 
       - name: Build github-action
         run: pnpm run --prefix ./github-action build
