@@ -2,8 +2,8 @@
 	"name": "save-steve",
 	"version": "5.3.1",
 	"description": "Generates a save steve game from a github user contributions grid",
-	"repository": "github:harsh/save_steve",
-	"homepage": "https://github.com/harsh/save_steve",
+	"repository": "github:G0DBeasT/save_steve",
+	"homepage": "https://github.com/G0DBeasT/save_steve",
 	"type": "module",
 	"main": "dist/save-steve.min.js",
 	"exports": {
@@ -52,7 +52,7 @@
 		"webpack-cli": "^6.0.1",
 		"webpack-merge": "^6.0.1"
 	},
-	"author": "harsh",
+	"author": "G0DBeasT",
 	"packageManager": "pnpm@9.15.4",
 	"dependencies": {
 		"yargs": "^18.0.0"

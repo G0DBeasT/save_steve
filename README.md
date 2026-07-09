@@ -52,7 +52,7 @@ Here's how to set up and run the games:
   - gameTheme: Choose between 'github' or 'github-dark'.  
 **CLI**  
 ***Basic***  
-save-steve --game pacman --username harsh --platform github --gameTheme github --output pacman-contribution-graph.svg  
+save-steve --game pacman --username G0DBeasT --platform github --gameTheme github --output pacman-contribution-graph.svg  
    
 **Integrate into Your GitHub Profile**  
 To showcase the Pac-Man game on your GitHub profile, follow these steps:  
@@ -81,7 +81,7 @@ To showcase the Pac-Man game on your GitHub profile, follow these steps:
    
          steps:  
              - name: generate contribution graph SVGs  
-               uses: harsh/save_steve@master  
+               uses: G0DBeasT/save_steve@master  
                with:  
                    github_user_name: ${{ github.repository_owner }}  
                    games: 'pacman'  
@@ -101,16 +101,16 @@ To showcase the Pac-Man game on your GitHub profile, follow these steps:
    
  <!-- pacman -->  
  <picture>  
-     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/harsh/harsh/output/pacman-contribution-graph-dark.svg">  
-     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/harsh/harsh/output/pacman-contribution-graph.svg">  
-     <img alt="pacman contribution graph" src="https://raw.githubusercontent.com/harsh/harsh/output/pacman-contribution-graph.svg">  
+     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/G0DBeasT/G0DBeasT/output/pacman-contribution-graph-dark.svg">  
+     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/G0DBeasT/G0DBeasT/output/pacman-contribution-graph.svg">  
+     <img alt="pacman contribution graph" src="https://raw.githubusercontent.com/G0DBeasT/G0DBeasT/output/pacman-contribution-graph.svg">  
  </picture>  
-[contributors-shield]: https://img.shields.io/github/contributors/harsh/save_steve.svg?style=for-the-badge
-[contributors-url]: https://github.com/harsh/save_steve/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/harsh/save_steve.svg?style=for-the-badge
-[forks-url]: https://github.com/harsh/save_steve/network/members
-[stars-shield]: https://img.shields.io/github/stars/harsh/save_steve.svg?style=for-the-badge
-[stars-url]: https://github.com/harsh/save_steve/stargazers
+[contributors-shield]: https://img.shields.io/github/contributors/G0DBeasT/save_steve.svg?style=for-the-badge
+[contributors-url]: https://github.com/G0DBeasT/save_steve/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/G0DBeasT/save_steve.svg?style=for-the-badge
+[forks-url]: https://github.com/G0DBeasT/save_steve/network/members
+[stars-shield]: https://img.shields.io/github/stars/G0DBeasT/save_steve.svg?style=for-the-badge
+[stars-url]: https://github.com/G0DBeasT/save_steve/stargazers
    
 4. **Commit and Push**:  
   - Push the changes to GitHub. The GitHub Actions workflow will run daily, updating the Pac-Man game on your profile.  
